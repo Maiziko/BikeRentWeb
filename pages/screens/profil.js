@@ -67,7 +67,7 @@ const Profile = () => {
                     <button
                         onClick={() =>
                             router.push({
-                                pathname: '/updateProfile',
+                                pathname: '/screens/updateprofile',
                                 query: {
                                     userId: userId,
                                     fullname: dataUsers.fullname,
