@@ -47,7 +47,7 @@ export default function SignUp() {
             await firestore.collection('users').doc(userId).set(userData);
 
             // Redirect to sign-in page after successful registration
-            router.replace('/signin');
+            router.replace('/screens/signin');
         } catch (error) {
             console.error('Error registering user:', error.message);
             // Handle error here

@@ -1,12 +1,14 @@
-// next.config.js
 module.exports = {
   async redirects() {
     return [
       {
         source: '/',
-        destination: '/screens/signup',
+        destination: '/screens/signin',
         permanent: true,
       },
     ]
   },
-}
+  images: {
+    domains: ['firebasestorage.googleapis.com', 'ui-avatars.com'],
+  },
+};
