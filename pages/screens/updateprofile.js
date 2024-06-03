@@ -3,13 +3,8 @@ import { useRouter } from 'next/router';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { firestore, storage } from '@/config/firebase';
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-// import getBlobFromUri from '../utils/getBlobFromUri';
-// import UploadImage from '../components/UploadImage';
-// import Input from '../components/Input';
-// import Button from '../components/Button';
-// import Topbar_2 from '../components/Topbar_2';
-// import Snackbar from '@mui/material/Snackbar';
-// import CircularProgress from '@mui/material/CircularProgress';
+import UploadImage from '../components/uploadimage';
+import getBlobFromUri from '../utils/getblobfromuri';
 
 const UpdateProfile = () => {
   const router = useRouter();
@@ -22,8 +17,6 @@ const UpdateProfile = () => {
     umur: { value: umur || '', isValid: true },
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
 
   const inputChangeHandler = (inputIdentifier, enteredValue) => {
     setInputs((currentInputs) => ({
@@ -37,6 +30,9 @@ const UpdateProfile = () => {
   };
 
   const handleUpdateData = async () => {
+    console.log('handleUpdateData called');
+    console.log('selectedImage:', selectedImage);
+
     if (!selectedImage) {
       const colRef = doc(firestore, 'users', userId);
       const dataUpdate = {
@@ -45,79 +41,77 @@ const UpdateProfile = () => {
         umur: inputs.umur.value || umur,
       };
 
+      console.log('Updating profile without image:', dataUpdate);
+
       setIsLoading(true);
       try {
         await updateDoc(colRef, dataUpdate);
-        // setSnackbarMessage('Profile Updated');
-        // setSnackbarVisible(true);
+        alert('Profile updated successfully');
         router.replace(`/profile?userId=${userId}`);
       } catch (error) {
-        // setSnackbarMessage(error.message);
-        // setSnackbarVisible(true);
+        console.error('Error updating profile:', error);
       } finally {
         setIsLoading(false);
       }
     } else {
+      console.log('Updating profile with image');
+
       const blobFile = await getBlobFromUri(selectedImage);
 
-      if (selectedImage) {
-        try {
-          const colref = doc(firestore, 'users', userId);
-          const docSnapshot = await getDoc(colref);
+      try {
+        const colRef = doc(firestore, 'users', userId);
+        const docSnapshot = await getDoc(colRef);
 
-          if (docSnapshot.exists()) {
-            const userData = docSnapshot.data();
-            if (userData && userData.imageUri) {
-              const imgRef = ref(storage, userData.imageUri);
-              await deleteObject(imgRef);
-            //   setSnackbarMessage('Old image deleted');
-            //   setSnackbarVisible(true);
-            }
+        if (docSnapshot.exists()) {
+          const userData = docSnapshot.data();
+          if (userData && userData.imageUri) {
+            const imgRef = ref(storage, userData.imageUri);
+            await deleteObject(imgRef);
+            alert('Old image deleted');
           }
-
-          setIsLoading(true);
-          const storagePath = 'imgUsers/' + new Date().getTime();
-          const storageRef = ref(storage, storagePath);
-          const uploadTask = uploadBytesResumable(storageRef, blobFile);
-
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            //   setSnackbarMessage(`Progress upload ${progress.toFixed(0)}%`);
-            //   setSnackbarVisible(true);
-            },
-            (err) => {
-            //   setSnackbarMessage(`Error: ${err.message}`);
-            //   setSnackbarVisible(true);
-            },
-            async () => {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              const colRef = doc(firestore, 'users', userId);
-              const dataUpdateWithImage = {
-                fullname: inputs.fullname.value || fullname,
-                imageUri: downloadURL,
-                nomorTelp: inputs.nomorTelp.value || nomorTelp,
-                umur: inputs.umur.value || umur,
-              };
-
-              await updateDoc(colRef, dataUpdateWithImage);
-            //   setSnackbarMessage('Profile updated');
-            //   setSnackbarVisible(true);
-              router.replace(`/profile?userId=${userId}`);
-            }
-          );
-        } catch (error) {
-          console.log(error.message);
         }
+
+        setIsLoading(true);
+        const storagePath = 'imgUsers/' + new Date().getTime();
+        const storageRef = ref(storage, storagePath);
+        const uploadTask = uploadBytesResumable(storageRef, blobFile);
+
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            alert(`Progress upload ${progress.toFixed(0)}%`);
+          },
+          (err) => {
+            alert('Error uploading image:', err);
+          },
+          async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log('Image uploaded, download URL:', downloadURL);
+
+            const dataUpdateWithImage = {
+              fullname: inputs.fullname.value || fullname,
+              imageUri: downloadURL,
+              nomorTelp: inputs.nomorTelp.value || nomorTelp,
+              umur: inputs.umur.value || umur,
+            };
+
+            await updateDoc(colRef, dataUpdateWithImage);
+            alert('Profile updated with image successfully');
+            router.replace(`/profile?userId=${userId}`);
+          }
+        );
+      } catch (error) {
+        console.error('Error updating profile with image:', error);
+      } finally {
+        setIsLoading(false);
       }
     }
   };
 
   return (
-    <div style={{ flex: 1, padding: '20px', margin: '0 auto', maxWidth: '480px' }}>
-      {/* <Topbar_2 title="UPDATE PROFILE" /> */}
-      {/* <UploadImage fullname={fullname} imageUri={imageUri} onImageUpload={uploadImageHandler} /> */}
+    <div className="flex flex-col items-center justify-center p-4">
+      <UploadImage fullname={fullname} imageUri={imageUri} onImageUpload={uploadImageHandler} />
       <div className="mt-10 w-4/5">
         <input
           className="flex items-center bg-white p-4 mt-4 rounded-md shadow-md"
@@ -142,9 +136,12 @@ const UpdateProfile = () => {
         />
       </div>
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
-        <button className='w-[300px] h-[60px] rounded-md text-white font-bold shadow-lg' onClick={handleUpdateData} style={{ backgroundImage: 'linear-gradient(90deg, #EA7604 0%, #DC4919 100%)' }}>
-            Update Profile
-          {/* {isLoading ? <CircularProgress color="inherit" /> : 'Update profile'} */}
+        <button
+          className="w-[300px] h-[60px] rounded-md text-white font-bold shadow-lg"
+          onClick={handleUpdateData}
+          style={{ backgroundImage: 'linear-gradient(90deg, #EA7604 0%, #DC4919 100%)' }}
+        >
+          Update Profile
         </button>
       </div>
     </div>
