@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 import { firestore } from '@/config/firebase';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -20,6 +20,62 @@ const BarcodeScanner = () => {
         //   barcodeData: result.text,
         //   timestamp: new Date(),
         // });
+
+        const bikeID = data;
+        const userID = userId;
+        const currentTimestamp = Timestamp.now();
+
+        try {
+            // Query for the rental document where bikeID matches and rentalEnd is null
+            const rentalQuery = query(
+                collection(firestore, 'Rental'),
+                where('bikeID', '==', bikeID),
+                where('rentalEnd', '==', null)
+            );
+
+            const querySnapshot = await getDocs(rentalQuery);
+
+            if (!querySnapshot.empty) {
+                let documentUpdated = false;
+                const updateDocuments = querySnapshot.docs.map(async (doc) => {
+                if (doc.data().userID === userID) {
+                    await updateDoc(doc.ref, { rentalEnd: currentTimestamp });
+                    const bikeRef = collection(firestore, "bike")
+                    const bikeQuery = query(bikeRef, where("bikeID", "==", bikeID))
+                    const bikeSnapshot = await getDocs(bikeQuery);
+                    await updateDoc(bikeSnapshot.docs[0].ref, { rented: false })
+                    documentUpdated = true;
+                    Alert.alert('Rental ended!', `Bike ID: ${bikeID}\nRental ID: ${doc.id}\nRental ended successfully.`);
+                }
+                });
+
+                await Promise.all(updateDocuments);
+
+                if (!documentUpdated) {
+                Alert.alert('Error', 'You can only end your own rental.');
+                }
+            } else {
+                // If no matching document is found, create a new rental document
+                const rentalDocRef = await addDoc(collection(firestore, 'Rental'), {
+                bikeID,
+                userID,
+                rentalStart: currentTimestamp,
+                rentalEnd: null,
+                });
+
+                const bikeRef = collection(firestore, "bike")
+                const bikeQuery = query(bikeRef, where("bikeID", "==", bikeID))
+                const bikeSnapshot = await getDocs(bikeQuery);
+                await updateDoc(bikeSnapshot.docs[0].ref, { rented: true })
+
+                Alert.alert('Rental started!', `Bike ID: ${bikeID}\nRental ID: ${rentalDocRef.id}`);
+            }
+        } catch (error) {
+            console.error("Error handling barcode scan: ", error);
+            Alert.alert('Error', 'There was an error processing your request.');
+        }
+
+        navigation.navigate('Home', {userId: currentUser});
         console.log('Document written with ID: ', docRef.id);
         alert('Barcode scanned and data saved successfully!');
       } catch (e) {
