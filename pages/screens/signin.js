@@ -29,7 +29,8 @@ const SignIn = () => {
             const { email, password } = inputs;
             const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
             const userId = userCredential.user.uid;
-            router.replace(`/screens/profil?userId=${userId}`);
+            // router.replace(`/screens/profil?userId=${userId}`);
+            router.replace(`/screens/map?userId=${userId}`);
         } catch (error) {
             console.error('Error signing in:', error.message);
             alert(`Error signing in: ${error.message}`);
