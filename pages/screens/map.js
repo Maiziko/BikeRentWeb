@@ -9,7 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import dynamic from 'next/dynamic';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
-const Map = ({ userId }) => {
+const Map = () => {
   const [initialRegion, setInitialRegion] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [posSepeda, setPos] = useState([]);
@@ -18,6 +18,7 @@ const Map = ({ userId }) => {
   const [bikeLocation, setBikeLocation] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { userId } = router.query
 
   const iconSepeda = L.icon({
     iconUrl: "../../iconSepeda.svg",
@@ -225,7 +226,7 @@ const Map = ({ userId }) => {
           <button onClick={() => setShowModal(false)} style={{ float: 'right', fontWeight: 'bold' }}>X</button>
           <h2>Pos sepeda: {selectedPos?.name}</h2>
           <p>Jumlah Sepeda: {selectedPos?.nBike}</p>
-          <Link href={`/barcodeScanner?userId=${userId}`}>
+          <Link href={`/screens/barcodescanner?userId=${userId}`}>
             <p style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: '#EB7802', color: 'white', borderRadius: '20px', textDecoration: 'none' }}>Scan QR Sepeda</p>
           </Link>
         </div>
