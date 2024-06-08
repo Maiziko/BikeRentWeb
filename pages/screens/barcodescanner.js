@@ -9,9 +9,11 @@ const BarcodeScannerComponent = dynamic(() => import('react-qr-barcode-scanner')
 const BarcodeScanner = () => {
   const [data, setData] = useState('Not Found');
   const router = useRouter();
+  const [isloading, setIsLoading] = useState(false)
   const { userId } = router.query;
 
   const handleUpdate = async (err, result) => {
+    setIsLoading(true)
     if (result) {
       setData(result.text);
       try {
@@ -74,8 +76,8 @@ const BarcodeScanner = () => {
             console.error("Error handling barcode scan: ", error);
             Alert.alert('Error', 'There was an error processing your request.');
         }
-
-        navigation.navigate('Home', {userId: currentUser});
+        router.push('/screens/home')
+        // navigation.navigate('Home', {userId: currentUser});
         console.log('Document written with ID: ', docRef.id);
         alert('Barcode scanned and data saved successfully!');
       } catch (e) {
@@ -85,7 +87,14 @@ const BarcodeScanner = () => {
     } else if (err) {
       console.error('Error scanning barcode: ', err);
     }
+    setIsLoading(false)
   };
+
+  if(isloading) {
+    return (
+        <div>loading...</div>
+    )
+  }
 
   return (
     <div>
