@@ -82,7 +82,7 @@ const BarcodeScanner = () => {
         alert('Barcode scanned and data saved successfully!');
       } catch (e) {
         console.error('Error adding document: ', e);
-        alert('Failed to save data. Please try again.');
+        // alert('Failed to save data. Please try again.');
       }
     } else if (err) {
       console.error('Error scanning barcode: ', err);
