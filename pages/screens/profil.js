@@ -43,6 +43,19 @@ const Profile = () => {
         fetchData();
     }, [userId]);
 
+    const handleHistoryClick = () => {
+        router.replace(`/screens/history?userId=${userId}`);
+      }
+    const handleHomeClick = () => {
+    router.replace(`/screens/home?userId=${userId}`);
+    }
+    const handleNotificationClick = () => {
+    router.replace(`/screens/notification?userId=${userId}`);
+    }
+    const handleProfileClick = () => {
+    router.replace(`/screens/profil?userId=${userId}`);
+    }
+
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -106,6 +119,12 @@ const Profile = () => {
                     <Image src="/Logout.svg" alt="Logout Icon" width={39} height={39} />
                     <p className="ml-4 text-lg font-bold text-[#004268]">Log Out</p>
                 </button>
+            </div>
+            <div style={{padding: '20px', height: '100vh', position: 'absolute', left: 0, top: 0, backgroundColor: 'white', zIndex: 9999, borderTopRightRadius: 20, borderBottomRightRadius: 20 }}>
+                <button style={{display: 'block'}} onClick={handleHomeClick}>Home</button>
+                <button style={{display: 'block', marginTop: 20}} onClick={handleHistoryClick}>History</button>
+                <button style={{display: 'block', marginTop: 20}} onClick={handleNotificationClick}>Notification</button>
+                <button style={{display: 'block', marginTop: 20}} onClick={handleProfileClick}>Profile</button>
             </div>
         </div>
     );
