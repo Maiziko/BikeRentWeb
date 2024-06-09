@@ -29,7 +29,7 @@ const Profile = () => {
                 const docRef = doc(firestore, 'users', userId);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    alert(userId); // Add this line
+                    // alert(userId); // Add this line
                     setDataUsers(docSnap.data());
                 } else {
                     console.error('No such document!');
